@@ -8,8 +8,11 @@ import 'tilt_maze_game.dart';
 
 class TiltMazeScreen extends StatefulWidget {
   const TiltMazeScreen({
+    required this.level,
     super.key,
   });
+
+  final TiltMazeLevel level;
 
   @override
   State<TiltMazeScreen> createState() =>
@@ -25,7 +28,7 @@ class _TiltMazeScreenState
     super.initState();
 
     _game = TiltMazeGame(
-      level: tiltMazeLevel1,
+      level: widget.level,
     );
   }
 
@@ -88,7 +91,7 @@ class _TiltMazeScreenState
                           title:
                               'TILT MAZE',
                           value:
-                              'NIVEL 01',
+                                'NIVEL ${widget.level.id.toString().padLeft(2, '0')}',
                         ),
                       ),
 

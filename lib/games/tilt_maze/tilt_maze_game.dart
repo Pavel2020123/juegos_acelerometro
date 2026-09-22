@@ -113,9 +113,10 @@ class TiltMazeGame extends FlameGame {
   final List<Component> _levelComponents = [];
   final List<Rect> _trackRects = [];
   final List<Rect> _checkpointRects = [];
-  Rect? _iceZoneRect;
 
-  MovingLaserComponent? _laser;
+  final List<Rect> _iceZoneRects = [];
+
+  final List<MovingLaserComponent> _lasers = [];
 
   bool _onIce = false;
 
@@ -228,10 +229,10 @@ class TiltMazeGame extends FlameGame {
     _levelComponents.clear();
     _trackRects.clear();
     _checkpointRects.clear();
+    _iceZoneRects.clear();
+    _lasers.clear();
 
     _portal = null;
-    _laser = null;
-    _iceZoneRect = null;
     _onIce = false;
 
     const double topArea = 160;
@@ -243,47 +244,19 @@ class TiltMazeGame extends FlameGame {
       bottom - topArea,
     );
 
-    final double centerX = size.x / 2;
-
     final double trackWidth = math.min(
-      96,
-      size.x * 0.23,
+          100,
+          size.x * level.trackWidthFactor,
     );
 
-    final List<Vector2> path = [
-      Vector2(
-        centerX,
-        bottom,
-      ),
-      Vector2(
-        centerX,
-        topArea + usableHeight * 0.80,
-      ),
-      Vector2(
-        size.x * 0.78,
-        topArea + usableHeight * 0.80,
-      ),
-      Vector2(
-        size.x * 0.78,
-        topArea + usableHeight * 0.58,
-      ),
-      Vector2(
-        size.x * 0.25,
-        topArea + usableHeight * 0.58,
-      ),
-      Vector2(
-        size.x * 0.25,
-        topArea + usableHeight * 0.34,
-      ),
-      Vector2(
-        size.x * 0.68,
-        topArea + usableHeight * 0.34,
-      ),
-      Vector2(
-        size.x * 0.68,
-        topArea + usableHeight * 0.10,
-      ),
-    ];
+      // Convertimos las coordenadas normalizadas del nivel
+      // a coordenadas reales de pantalla.
+      final List<Vector2> path = level.path.map((point) {
+        return Vector2(
+          size.x * point.x,
+          topArea + usableHeight * point.y,
+        );
+      }).toList();
 
     // Pista.
     for (int i = 0; i < path.length - 1; i++) {
@@ -315,78 +288,79 @@ class TiltMazeGame extends FlameGame {
     // CHECKPOINT 1
     // ============================================================
 
-    _createCheckpoint(
-      path[3],
-      1,
-    );
-
     // ============================================================
-    // CHECKPOINT 2
-    // ============================================================
+// CHECKPOINTS DEL NIVEL
+// ============================================================
 
-    _createCheckpoint(
-      path[5],
-      2,
-    );
+    for (int i = 0; i < level.checkpointIndexes.length; i++) {
+      final pathIndex = level.checkpointIndexes[i];
 
-    // ============================================================
-    // ZONA DE HIELO
-    // ============================================================
+      if (pathIndex >= 0 && pathIndex < path.length) {
+        _createCheckpoint(
+          path[pathIndex],
+          i + 1,
+        );
+      }
+    }
 
-    final iceCenter = Vector2(
-      size.x * 0.51,
-      topArea + usableHeight * 0.58,
-    );
+          // ============================================================
+      // ZONAS DE HIELO
+      // ============================================================
 
-    final iceWidth = size.x * 0.30;
-    const iceHeight = 72.0;
+      for (final ice in level.iceZones) {
+        final rect = Rect.fromCenter(
+          center: Offset(
+            size.x * ice.x,
+            topArea + usableHeight * ice.y,
+          ),
+          width: size.x * ice.width,
+          height: usableHeight * ice.height,
+        );
 
-    _iceZoneRect = Rect.fromCenter(
-      center: Offset(
-        iceCenter.x,
-        iceCenter.y,
-      ),
-      width: iceWidth,
-      height: iceHeight,
-    );
+        _iceZoneRects.add(rect);
 
-    final iceZone = IceZoneComponent(
-      position: Vector2(
-        _iceZoneRect!.left,
-        _iceZoneRect!.top,
-      ),
-      size: Vector2(
-        _iceZoneRect!.width,
-        _iceZoneRect!.height,
-      ),
-      priority: 6,
-    );
+        final iceZone = IceZoneComponent(
+          position: Vector2(
+            rect.left,
+            rect.top,
+          ),
+          size: Vector2(
+            rect.width,
+            rect.height,
+          ),
+          priority: 6,
+        );
 
-    _levelComponents.add(iceZone);
+        _levelComponents.add(iceZone);
 
-    add(iceZone);
+        add(iceZone);
+      }
 
-    // ============================================================
-    // LÁSER MÓVIL
+        // ============================================================
+    // LÁSERES DEL NIVEL
     // ============================================================
 
-    final laserCenter = Vector2(
-      size.x * 0.25,
-      topArea + usableHeight * 0.45,
-    );
+    for (final laserConfig in level.lasers) {
+      final laserCenter = Vector2(
+        size.x * laserConfig.x,
+        topArea + usableHeight * laserConfig.y,
+      );
 
-    final laser = MovingLaserComponent(
-      centerPosition: laserCenter,
-      movementWidth: trackWidth * 0.85,
-      laserLength: trackWidth * 0.90,
-      priority: 15,
-    );
+      final laser = MovingLaserComponent(
+        centerPosition: laserCenter,
+        movementWidth: trackWidth * 0.85,
+        laserLength: trackWidth * 0.90,
+        speed: laserConfig.speed,
+        movementFactor: laserConfig.movement,
+        priority: 15,
+      );
 
-    _laser = laser;
+      _lasers.add(laser);
 
-    _levelComponents.add(laser);
+      _levelComponents.add(laser);
 
-    add(laser);
+      add(laser);
+    }
 
     // ============================================================
     // PORTAL META
@@ -728,41 +702,44 @@ class TiltMazeGame extends FlameGame {
   // ============================================================
 
   void _checkIceZone() {
-    final ball = _ball;
-    final ice = _iceZoneRect;
+  final ball = _ball;
 
-    if (ball == null || ice == null) {
-      _onIce = false;
-      return;
-    }
-
-    _onIce = ice.contains(
-      Offset(
-        ball.position.x,
-        ball.position.y,
-      ),
-    );
+  if (ball == null) {
+    _onIce = false;
+    return;
   }
+
+  final point = Offset(
+    ball.position.x,
+    ball.position.y,
+  );
+
+  _onIce = _iceZoneRects.any(
+    (rect) => rect.contains(point),
+  );
+}
 
   // ============================================================
   // LÁSER
   // ============================================================
 
   void _checkLaserCollision() {
-    final ball = _ball;
-    final laser = _laser;
+  final ball = _ball;
 
-    if (ball == null || laser == null) {
-      return;
-    }
+  if (ball == null) {
+    return;
+  }
 
+  for (final laser in _lasers) {
     if (laser.collidesWithBall(
       ball.position,
       _ballRadius,
     )) {
       _startFall();
+      return;
     }
   }
+}
 
   // ============================================================
   // CAÍDA
@@ -1759,11 +1736,13 @@ class IceZoneComponent extends PositionComponent {
 class MovingLaserComponent
     extends PositionComponent {
   MovingLaserComponent({
-    required Vector2 centerPosition,
-    required this.movementWidth,
-    required this.laserLength,
-    super.priority,
-  }) : super(
+  required Vector2 centerPosition,
+  required this.movementWidth,
+  required this.laserLength,
+  required this.speed,
+  required this.movementFactor,
+  super.priority,
+}) : super(
           position:
               centerPosition.clone(),
           size: Vector2(
@@ -1776,6 +1755,9 @@ class MovingLaserComponent
 
   final double movementWidth;
   final double laserLength;
+
+  final double speed;
+  final double movementFactor;
 
   double _time = 0;
 
@@ -1790,15 +1772,14 @@ class MovingLaserComponent
     _time += dt;
 
     // Movimiento de izquierda a derecha.
-    final normalized =
-        math.sin(
-           _time * 0.9,
-        );
+    final normalized = math.sin(
+      _time * speed,
+    );
 
     _laserX =
         normalized *
-            movementWidth *
-            0.30;
+        movementWidth *
+        movementFactor;
   }
 
   @override
