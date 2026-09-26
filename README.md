@@ -1,17 +1,20 @@
-# juegos_acelerometro
+# Tilt Maze
 
-A new Flutter project.
+Juego de laberintos para Flutter controlado con el acelerómetro. Incluye tres niveles con checkpoints, hielo y láseres.
 
-## Getting Started
+## Jugar
 
-This project is a starting point for a Flutter application.
+1. Elige un nivel y sostén el teléfono en una posición cómoda. Esa posición se calibra al recibir la primera lectura del sensor.
+2. Inclina el teléfono para mover la esfera. Usa el botón de calibración si cambias la posición de agarre.
+3. Pasa por los checkpoints en orden y llega al portal. Si caes, reapareces en el último checkpoint.
 
-A few resources to get you started if this is your first Flutter project:
+Puedes activar el control táctil con el botón de la mano. En pausa puedes ajustar la sensibilidad o reiniciar el nivel. Si el dispositivo no tiene acelerómetro, aparece un aviso para usar el control táctil.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Desarrollo
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+flutter pub get
+flutter run
+flutter test
+flutter analyze
+```

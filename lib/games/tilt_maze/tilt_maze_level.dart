@@ -1,8 +1,5 @@
 class TiltMazePoint {
-  const TiltMazePoint(
-    this.x,
-    this.y,
-  );
+  const TiltMazePoint(this.x, this.y);
 
   /// Coordenadas normalizadas.
   ///
@@ -87,43 +84,16 @@ const tiltMazeLevel1 = TiltMazeLevel(
   name: 'Primer contacto',
   description: 'Aprende a controlar la esfera.',
   trackWidthFactor: 0.24,
-  checkpointIndexes: [
-    3,
-    5,
-  ],
+  checkpointIndexes: [3, 5],
   path: [
-    TiltMazePoint(
-      0.50,
-      1.00,
-    ),
-    TiltMazePoint(
-      0.50,
-      0.82,
-    ),
-    TiltMazePoint(
-      0.78,
-      0.82,
-    ),
-    TiltMazePoint(
-      0.78,
-      0.60,
-    ),
-    TiltMazePoint(
-      0.25,
-      0.60,
-    ),
-    TiltMazePoint(
-      0.25,
-      0.34,
-    ),
-    TiltMazePoint(
-      0.68,
-      0.34,
-    ),
-    TiltMazePoint(
-      0.68,
-      0.06,
-    ),
+    TiltMazePoint(0.50, 1.00),
+    TiltMazePoint(0.50, 0.82),
+    TiltMazePoint(0.78, 0.82),
+    TiltMazePoint(0.78, 0.60),
+    TiltMazePoint(0.25, 0.60),
+    TiltMazePoint(0.25, 0.34),
+    TiltMazePoint(0.68, 0.34),
+    TiltMazePoint(0.68, 0.06),
   ],
 );
 
@@ -137,68 +107,21 @@ const tiltMazeLevel2 = TiltMazeLevel(
   name: 'Zona congelada',
   description: 'Controla la inercia y evita el láser.',
   trackWidthFactor: 0.21,
-  checkpointIndexes: [
-    3,
-    6,
-  ],
+  checkpointIndexes: [3, 6],
   path: [
-    TiltMazePoint(
-      0.50,
-      1.00,
-    ),
-    TiltMazePoint(
-      0.50,
-      0.86,
-    ),
-    TiltMazePoint(
-      0.20,
-      0.86,
-    ),
-    TiltMazePoint(
-      0.20,
-      0.68,
-    ),
-    TiltMazePoint(
-      0.76,
-      0.68,
-    ),
-    TiltMazePoint(
-      0.76,
-      0.48,
-    ),
-    TiltMazePoint(
-      0.32,
-      0.48,
-    ),
-    TiltMazePoint(
-      0.32,
-      0.27,
-    ),
-    TiltMazePoint(
-      0.72,
-      0.27,
-    ),
-    TiltMazePoint(
-      0.72,
-      0.05,
-    ),
+    TiltMazePoint(0.50, 1.00),
+    TiltMazePoint(0.50, 0.86),
+    TiltMazePoint(0.20, 0.86),
+    TiltMazePoint(0.20, 0.68),
+    TiltMazePoint(0.76, 0.68),
+    TiltMazePoint(0.76, 0.48),
+    TiltMazePoint(0.32, 0.48),
+    TiltMazePoint(0.32, 0.27),
+    TiltMazePoint(0.72, 0.27),
+    TiltMazePoint(0.72, 0.05),
   ],
-  iceZones: [
-    TiltMazeIceZone(
-      x: 0.47,
-      y: 0.68,
-      width: 0.30,
-      height: 0.09,
-    ),
-  ],
-  lasers: [
-    TiltMazeLaser(
-      x: 0.32,
-      y: 0.48,
-      speed: 0.9,
-      movement: 0.30,
-    ),
-  ],
+  iceZones: [TiltMazeIceZone(x: 0.47, y: 0.68, width: 0.30, height: 0.09)],
+  lasers: [TiltMazeLaser(x: 0.54, y: 0.48, speed: 0.9, movement: 0.30)],
 );
 
 // ============================================================
@@ -211,87 +134,28 @@ const tiltMazeLevel3 = TiltMazeLevel(
   name: 'Órbita extrema',
   description: 'Pista estrecha, hielo y múltiples peligros.',
   trackWidthFactor: 0.17,
-  checkpointIndexes: [
-    3,
-    7,
-  ],
+  checkpointIndexes: [3, 7],
   path: [
-    TiltMazePoint(
-      0.50,
-      1.00,
-    ),
-    TiltMazePoint(
-      0.50,
-      0.88,
-    ),
-    TiltMazePoint(
-      0.78,
-      0.88,
-    ),
-    TiltMazePoint(
-      0.78,
-      0.72,
-    ),
-    TiltMazePoint(
-      0.23,
-      0.72,
-    ),
-    TiltMazePoint(
-      0.23,
-      0.56,
-    ),
-    TiltMazePoint(
-      0.68,
-      0.56,
-    ),
-    TiltMazePoint(
-      0.68,
-      0.40,
-    ),
-    TiltMazePoint(
-      0.34,
-      0.40,
-    ),
-    TiltMazePoint(
-      0.34,
-      0.23,
-    ),
-    TiltMazePoint(
-      0.72,
-      0.23,
-    ),
-    TiltMazePoint(
-      0.72,
-      0.05,
-    ),
+    TiltMazePoint(0.50, 1.00),
+    TiltMazePoint(0.50, 0.88),
+    TiltMazePoint(0.78, 0.88),
+    TiltMazePoint(0.78, 0.72),
+    TiltMazePoint(0.23, 0.72),
+    TiltMazePoint(0.23, 0.56),
+    TiltMazePoint(0.68, 0.56),
+    TiltMazePoint(0.68, 0.40),
+    TiltMazePoint(0.34, 0.40),
+    TiltMazePoint(0.34, 0.23),
+    TiltMazePoint(0.72, 0.23),
+    TiltMazePoint(0.72, 0.05),
   ],
   iceZones: [
-    TiltMazeIceZone(
-      x: 0.48,
-      y: 0.72,
-      width: 0.34,
-      height: 0.08,
-    ),
-    TiltMazeIceZone(
-      x: 0.51,
-      y: 0.23,
-      width: 0.24,
-      height: 0.07,
-    ),
+    TiltMazeIceZone(x: 0.48, y: 0.72, width: 0.34, height: 0.08),
+    TiltMazeIceZone(x: 0.51, y: 0.23, width: 0.24, height: 0.07),
   ],
   lasers: [
-    TiltMazeLaser(
-      x: 0.23,
-      y: 0.56,
-      speed: 1.0,
-      movement: 0.27,
-    ),
-    TiltMazeLaser(
-      x: 0.68,
-      y: 0.40,
-      speed: 1.15,
-      movement: 0.25,
-    ),
+    TiltMazeLaser(x: 0.23, y: 0.56, speed: 1.0, movement: 0.27),
+    TiltMazeLaser(x: 0.51, y: 0.40, speed: 1.15, movement: 0.25),
   ],
 );
 
@@ -299,8 +163,4 @@ const tiltMazeLevel3 = TiltMazeLevel(
 // LISTA GENERAL
 // ============================================================
 
-const tiltMazeLevels = [
-  tiltMazeLevel1,
-  tiltMazeLevel2,
-  tiltMazeLevel3,
-];
+const tiltMazeLevels = [tiltMazeLevel1, tiltMazeLevel2, tiltMazeLevel3];

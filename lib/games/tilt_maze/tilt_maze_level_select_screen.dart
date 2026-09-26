@@ -4,9 +4,7 @@ import 'tilt_maze_level.dart';
 import 'tilt_maze_screen.dart';
 
 class TiltMazeLevelSelectScreen extends StatelessWidget {
-  const TiltMazeLevelSelectScreen({
-    super.key,
-  });
+  const TiltMazeLevelSelectScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +32,7 @@ class TiltMazeLevelSelectScreen extends StatelessWidget {
 
               const Text(
                 'Selecciona una misión',
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.white54, fontSize: 16),
               ),
 
               const SizedBox(height: 28),
@@ -45,17 +40,11 @@ class TiltMazeLevelSelectScreen extends StatelessWidget {
               Expanded(
                 child: ListView.separated(
                   itemCount: tiltMazeLevels.length,
-                  separatorBuilder: (_, __) {
-                    return const SizedBox(
-                      height: 16,
-                    );
+                  separatorBuilder: (_, _) {
+                    return const SizedBox(height: 16);
                   },
-                  itemBuilder: (
-                    context,
-                    index,
-                  ) {
-                    final level =
-                        tiltMazeLevels[index];
+                  itemBuilder: (context, index) {
+                    final level = tiltMazeLevels[index];
 
                     return _LevelCard(
                       level: level,
@@ -64,9 +53,7 @@ class TiltMazeLevelSelectScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) {
-                              return TiltMazeScreen(
-                                level: level,
-                              );
+                              return TiltMazeScreen(level: level);
                             },
                           ),
                         );
@@ -84,10 +71,7 @@ class TiltMazeLevelSelectScreen extends StatelessWidget {
 }
 
 class _LevelCard extends StatelessWidget {
-  const _LevelCard({
-    required this.level,
-    required this.onPressed,
-  });
+  const _LevelCard({required this.level, required this.onPressed});
 
   final TiltMazeLevel level;
 
@@ -113,22 +97,13 @@ class _LevelCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
-        borderRadius:
-            BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(22),
         child: Ink(
-          padding:
-              const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color:
-                const Color(0xFF11182A),
-            borderRadius:
-                BorderRadius.circular(22),
-            border: Border.all(
-              color:
-                  Colors.white.withValues(
-                alpha: 0.09,
-              ),
-            ),
+            color: const Color(0xFF11182A),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
           ),
           child: Row(
             children: [
@@ -136,133 +111,79 @@ class _LevelCard extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color:
-                      const Color(0xFF536DFF)
-                          .withValues(
-                    alpha: 0.15,
-                  ),
-                  borderRadius:
-                      BorderRadius.circular(
-                    18,
-                  ),
+                  color: const Color(0xFF536DFF).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                child: Icon(
-                  icon,
-                  color:
-                      const Color(
-                    0xFF8EA1FF,
-                  ),
-                  size: 30,
-                ),
+                child: Icon(icon, color: const Color(0xFF8EA1FF), size: 30),
               ),
 
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment
-                          .start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         Text(
                           'NIVEL ${level.id}',
-                          style:
-                              const TextStyle(
-                            color:
-                                Colors.white38,
-                            fontSize:
-                                11,
-                            fontWeight:
-                                FontWeight.bold,
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
 
                         const Spacer(),
 
                         Container(
-                          padding:
-                              const EdgeInsets
-                                  .symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 9,
                             vertical: 4,
                           ),
-                          decoration:
-                              BoxDecoration(
-                            color:
-                                Colors.white
-                                    .withValues(
-                              alpha: 0.06,
-                            ),
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                              10,
-                            ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             difficulty,
-                            style:
-                                const TextStyle(
-                              color:
-                                  Colors.white54,
-                              fontSize:
-                                  10,
-                              fontWeight:
-                                  FontWeight.bold,
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(
-                      height: 6,
-                    ),
+                    const SizedBox(height: 6),
 
                     Text(
                       level.name,
-                      style:
-                          const TextStyle(
-                        color:
-                            Colors.white,
-                        fontSize:
-                            18,
-                        fontWeight:
-                            FontWeight.bold,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 5,
-                    ),
+                    const SizedBox(height: 5),
 
                     Text(
                       level.description,
-                      style:
-                          const TextStyle(
-                        color:
-                            Colors.white54,
-                        fontSize:
-                            13,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 13,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
 
-              const Icon(
-                Icons.chevron_right,
-                color:
-                    Colors.white38,
-              ),
+              const Icon(Icons.chevron_right, color: Colors.white38),
             ],
           ),
         ),
