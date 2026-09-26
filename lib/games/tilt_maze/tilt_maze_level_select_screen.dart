@@ -16,6 +16,11 @@ class TiltMazeLevelSelectScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              IconButton.filledTonal(
+                tooltip: 'Volver a juegos',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back),
+              ),
               const SizedBox(height: 16),
 
               const Text(

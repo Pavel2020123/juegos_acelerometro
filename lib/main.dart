@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'games/tilt_maze/tilt_maze_level_select_screen.dart';
+import 'game_hub_screen.dart';
 
 void main() {
   runApp(const AccelLabApp());
@@ -21,7 +21,7 @@ class AccelLabApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const TiltMazeLevelSelectScreen(),
+      home: const GameHubScreen(),
     );
   }
 }

@@ -1,14 +1,20 @@
-# Tilt Maze
+# AccelLab
 
-Juego de laberintos para Flutter controlado con el acelerómetro. Incluye tres niveles con checkpoints, hielo y láseres.
+App Flutter con dos minijuegos que muestran distintas formas de usar el acelerómetro.
 
-## Jugar
+## Tilt Maze
 
-1. Elige un nivel y sostén el teléfono en una posición cómoda. Esa posición se calibra al recibir la primera lectura del sensor.
-2. Inclina el teléfono para mover la esfera. Usa el botón de calibración si cambias la posición de agarre.
-3. Pasa por los checkpoints en orden y llega al portal. Si caes, reapareces en el último checkpoint.
+Laberinto con tres niveles, checkpoints, hielo y láseres. Inclina el teléfono para guiar la esfera hasta el portal. Pasa por los checkpoints en orden; si caes, reapareces en el último.
 
-Puedes activar el control táctil con el botón de la mano. En pausa puedes ajustar la sensibilidad o reiniciar el nivel. Si el dispositivo no tiene acelerómetro, aparece un aviso para usar el control táctil.
+## Balance Master
+
+Juego de equilibrio con tres niveles de 20, 25 y 30 segundos. Mantén uno, dos o tres objetos sobre una plataforma flotante usando inclinaciones pequeñas. Los niveles avanzados añaden bordes peligrosos e impulsos anunciados con anticipación.
+
+Antes de cada ronda, sostén el teléfono en una posición cómoda y pulsa **Calibrar**. Tras la cuenta regresiva comienza el cronómetro. La barra de estabilidad refleja cambios en la lectura del sensor y se recupera gradualmente al sostener el teléfono estable. Puedes pausar, reintentar o cambiar al control táctil para probarlo en un emulador.
+
+## Controles
+
+Ambos juegos ofrecen un modo táctil alternativo y pausa. Tilt Maze permite recalibrar y ajustar la sensibilidad durante la partida. Balance Master pide calibración al iniciar cada ronda y muestra estabilidad en tiempo real.
 
 ## Desarrollo
 
