@@ -526,7 +526,6 @@ class BalanceMasterGame extends FlameGame {
   @override
   void onDispose() {
     unawaited(close());
-    dispose();
     super.onDispose();
   }
 }

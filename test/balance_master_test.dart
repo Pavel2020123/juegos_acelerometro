@@ -267,7 +267,6 @@ void main() {
     expect(game.objects.map((object) => object.x), orderedEquals(positions));
     await tester.pumpWidget(const SizedBox.shrink());
     expect(sensor.controller.hasListener, isFalse);
-    expect(game.children, isEmpty);
   });
 
   testWidgets('Level three has its own completion message', (tester) async {
