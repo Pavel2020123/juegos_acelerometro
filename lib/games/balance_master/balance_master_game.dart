@@ -9,6 +9,17 @@ import 'balance_master_level.dart';
 
 enum BalancePhase { calibrating, countdown, playing, falling, lost, won }
 
+int balanceStars({
+  required double averageStability,
+  required int objectivesCompleted,
+  required int totalObjectives,
+}) {
+  if (averageStability < 65) return 1;
+  final needed = (totalObjectives * 0.65).ceil();
+  if (averageStability >= 84 && objectivesCompleted >= needed) return 3;
+  return 2;
+}
+
 class BalanceHudState {
   const BalanceHudState({
     required this.phase,
@@ -18,6 +29,17 @@ class BalanceHudState {
     required this.averageStability,
     required this.countdown,
     required this.impulseWarning,
+    required this.gustFromLeft,
+    required this.platformWarning,
+    required this.score,
+    required this.combo,
+    required this.maxCombo,
+    required this.objectiveIndex,
+    required this.objectiveProgress,
+    required this.objectivesCompleted,
+    required this.totalObjectives,
+    required this.objectiveCompletedPulse,
+    required this.stars,
   });
 
   final BalancePhase phase;
@@ -27,6 +49,17 @@ class BalanceHudState {
   final double averageStability;
   final double countdown;
   final bool impulseWarning;
+  final bool gustFromLeft;
+  final bool platformWarning;
+  final int score;
+  final int combo;
+  final int maxCombo;
+  final int? objectiveIndex;
+  final double objectiveProgress;
+  final int objectivesCompleted;
+  final int totalObjectives;
+  final bool objectiveCompletedPulse;
+  final int stars;
 }
 
 class BalanceObjectState {
@@ -34,12 +67,14 @@ class BalanceObjectState {
     required this.x,
     required this.radius,
     required this.response,
+    required this.frictionFactor,
   });
 
   double x;
   double velocity = 0;
   final double radius;
   final double response;
+  final double frictionFactor;
 }
 
 class BalanceMasterGame extends FlameGame {
@@ -56,6 +91,17 @@ class BalanceMasterGame extends FlameGame {
            averageStability: 100,
            countdown: 3.6,
            impulseWarning: false,
+           gustFromLeft: true,
+           platformWarning: false,
+           score: 0,
+           combo: 1,
+           maxCombo: 1,
+           objectiveIndex: null,
+           objectiveProgress: 0,
+           objectivesCompleted: 0,
+           totalObjectives: level.objectives.length,
+           objectiveCompletedPulse: false,
+           stars: 0,
          ),
        );
 
@@ -86,6 +132,21 @@ class BalanceMasterGame extends FlameGame {
   double _hudTimer = 0;
   double _nextImpulseAt = 0;
   int _impulseIndex = 0;
+  double _nextPlatformAt = 0;
+  double _platformShift = 0;
+  double _platformMotionStart = -1;
+  int _platformMotionIndex = 0;
+  int _nextObjective = 0;
+  BalanceObjective? _activeObjective;
+  double _objectiveStartedAt = 0;
+  double _objectiveProgress = 0;
+  int _objectivesCompleted = 0;
+  double _objectivePulse = 0;
+  double _completedObjectiveCenter = 0;
+  double _stableComboTime = 0;
+  int _combo = 1;
+  int _maxCombo = 1;
+  double _score = 0;
   int? _fallingIndex;
   BalancePhase _phase = BalancePhase.calibrating;
 
@@ -94,6 +155,8 @@ class BalanceMasterGame extends FlameGame {
   double get neutralX => _neutralX;
   double get neutralY => _neutralY;
   double get platformWidth => math.min(size.x * level.platformWidthFactor, 440);
+  BalanceObjective? get activeObjective => _activeObjective;
+  double get platformShift => _platformShift;
 
   @override
   Color backgroundColor() => const Color(0xFF050914);
@@ -133,7 +196,8 @@ class BalanceMasterGame extends FlameGame {
       2 => [-0.18, 0.18],
       _ => [-0.27, 0.0, 0.27],
     };
-    const responses = [1.0, 0.82, 1.12];
+    const responses = [1.0, 0.78, 1.17];
+    const frictionFactors = [1.0, 0.78, 1.26];
     const radii = [15.0, 13.0, 12.0];
     for (var i = 0; i < level.objectCount; i++) {
       objects.add(
@@ -141,6 +205,7 @@ class BalanceMasterGame extends FlameGame {
           x: platformWidth * starts[i],
           radius: radii[i],
           response: responses[i],
+          frictionFactor: frictionFactors[i],
         ),
       );
     }
@@ -179,7 +244,7 @@ class BalanceMasterGame extends FlameGame {
   void setTouchTilt(double value) {
     if (!_touchMode || _phase != BalancePhase.playing || paused) return;
     final next = value.clamp(-1.0, 1.0);
-    _motionSpike = math.max(_motionSpike, (next - _touchTilt).abs() * 0.35);
+    _motionSpike = math.max(_motionSpike, (next - _touchTilt).abs() * 0.65);
     _touchTilt = next;
   }
 
@@ -216,6 +281,20 @@ class BalanceMasterGame extends FlameGame {
     _motionSpike = 0;
     _nextImpulseAt = level.perturbationInterval;
     _impulseIndex = 0;
+    _nextPlatformAt = level.dynamicPlatformInterval;
+    _platformShift = 0;
+    _platformMotionStart = -1;
+    _platformMotionIndex = 0;
+    _nextObjective = 0;
+    _activeObjective = null;
+    _objectiveProgress = 0;
+    _objectivesCompleted = 0;
+    _objectivePulse = 0;
+    _completedObjectiveCenter = 0;
+    _stableComboTime = 0;
+    _combo = 1;
+    _maxCombo = 1;
+    _score = 0;
     _publishHud();
   }
 
@@ -258,6 +337,7 @@ class BalanceMasterGame extends FlameGame {
         _touchTilt = 0;
         _motionSpike = 0;
         _nextImpulseAt = level.perturbationInterval;
+        _nextPlatformAt = level.dynamicPlatformInterval;
       }
       _publishAtInterval(dt);
       return;
@@ -274,6 +354,8 @@ class BalanceMasterGame extends FlameGame {
 
     final activeDt = math.min(dt, level.duration - _elapsed);
     _elapsed += activeDt;
+    _objectivePulse = math.max(0, _objectivePulse - dt);
+    final platformDelta = _updatePlatformMotion();
     final rawTilt = _touchMode ? _touchTilt * 1.2 : _filteredTilt;
     final tilt = rawTilt.abs() < 0.10
         ? 0.0
@@ -287,9 +369,13 @@ class BalanceMasterGame extends FlameGame {
     );
     _stability += (stabilityTarget - _stability) * (1 - math.exp(-2.2 * dt));
     _stabilityIntegral += _stability * activeDt;
+    _updateCombo(activeDt);
+    _score += level.scorePerSecond * activeDt * _combo;
 
     if (level.perturbationInterval > 0 && _elapsed >= _nextImpulseAt) {
-      final impulse = _impulseIndex.isEven ? 13.0 : -13.0;
+      final impulse = _impulseIndex.isEven
+          ? level.gustImpulse
+          : -level.gustImpulse;
       for (final object in objects) {
         object.velocity += impulse * object.response;
       }
@@ -300,8 +386,13 @@ class BalanceMasterGame extends FlameGame {
     final safeHalfWidth = platformWidth / 2 - level.hazardInset;
     for (var i = 0; i < objects.length; i++) {
       final object = objects[i];
+      final edgeClearance = safeHalfWidth - object.x.abs() - object.radius;
+      if (edgeClearance > 12) {
+        object.velocity -=
+            platformDelta * level.platformInertia * object.response;
+      }
       object.velocity += tilt * level.sensitivity * object.response * dt;
-      object.velocity *= math.exp(-level.friction * dt);
+      object.velocity *= math.exp(-level.friction * object.frictionFactor * dt);
       object.velocity = object.velocity.clamp(-level.maxSpeed, level.maxSpeed);
       object.x += object.velocity * dt;
       if (object.x.abs() + object.radius > safeHalfWidth) {
@@ -313,12 +404,97 @@ class BalanceMasterGame extends FlameGame {
       }
     }
 
+    _updateObjective(activeDt);
+
     if (_elapsed >= level.duration) {
       _phase = BalancePhase.won;
       _publishHud();
       return;
     }
     _publishAtInterval(dt);
+  }
+
+  void _updateCombo(double dt) {
+    if (_motionSpike >= level.comboBreakSpike ||
+        _stability < level.comboBreakThreshold) {
+      _stableComboTime = 0;
+      _combo = 1;
+      return;
+    }
+    if (_stability < level.comboThreshold) return;
+    _stableComboTime += dt;
+    _combo = math.min(
+      4,
+      1 + (_stableComboTime / level.comboStepSeconds).floor(),
+    );
+    _maxCombo = math.max(_maxCombo, _combo);
+  }
+
+  double _updatePlatformMotion() {
+    if (level.dynamicPlatformInterval <= 0) return 0;
+    final previousShift = _platformShift;
+    if (_elapsed >= _nextPlatformAt) {
+      _platformMotionStart = _nextPlatformAt;
+      _nextPlatformAt += level.dynamicPlatformInterval;
+      _platformMotionIndex++;
+    }
+    final phaseTime = _elapsed - _platformMotionStart;
+    if (_platformMotionStart >= 0 &&
+        phaseTime >= 0 &&
+        phaseTime < level.platformMotionSeconds) {
+      final direction = _platformMotionIndex.isOdd ? 1.0 : -1.0;
+      _platformShift =
+          direction *
+          level.platformShift *
+          math.sin(math.pi * phaseTime / level.platformMotionSeconds);
+    } else {
+      _platformShift = 0;
+    }
+    return _platformShift - previousShift;
+  }
+
+  double _objectiveCenter(BalanceObjective objective) {
+    final halfZone = platformWidth * objective.widthFactor / 2;
+    final safeHalf = platformWidth / 2 - level.hazardInset;
+    return (platformWidth * objective.centerFactor).clamp(
+      -safeHalf + halfZone + 4,
+      safeHalf - halfZone - 4,
+    );
+  }
+
+  void _updateObjective(double dt) {
+    if (_activeObjective == null &&
+        _nextObjective < level.objectives.length &&
+        _elapsed >= level.objectives[_nextObjective].appearAt) {
+      _activeObjective = level.objectives[_nextObjective];
+      _objectiveStartedAt = _elapsed;
+      _objectiveProgress = 0;
+      _nextObjective++;
+    }
+    final objective = _activeObjective;
+    if (objective == null) return;
+    if (_elapsed - _objectiveStartedAt >= objective.availableSeconds) {
+      _activeObjective = null;
+      _objectiveProgress = 0;
+      return;
+    }
+    final object = objects[objective.objectIndex];
+    final halfZone = platformWidth * objective.widthFactor / 2;
+    final inside =
+        (object.x - _objectiveCenter(objective)).abs() + object.radius <=
+        halfZone;
+    _objectiveProgress = (_objectiveProgress + (inside ? dt : -dt * 0.5)).clamp(
+      0,
+      objective.holdSeconds,
+    );
+    if (_objectiveProgress >= objective.holdSeconds) {
+      _objectivesCompleted++;
+      _score += level.objectiveBonus * _combo;
+      _objectivePulse = 1.2;
+      _completedObjectiveCenter = _objectiveCenter(objective);
+      _activeObjective = null;
+      _objectiveProgress = 0;
+    }
   }
 
   void _publishAtInterval(double dt) {
@@ -341,8 +517,33 @@ class BalanceMasterGame extends FlameGame {
       impulseWarning:
           _phase == BalancePhase.playing &&
           level.perturbationInterval > 0 &&
-          _elapsed >= _nextImpulseAt - 1 &&
+          _elapsed >= _nextImpulseAt - level.gustWarningSeconds &&
           _elapsed < _nextImpulseAt,
+      gustFromLeft: _impulseIndex.isEven,
+      platformWarning:
+          _phase == BalancePhase.playing &&
+          level.dynamicPlatformInterval > 0 &&
+          _elapsed >= _nextPlatformAt - level.platformWarningSeconds &&
+          _elapsed < _nextPlatformAt,
+      score: _score.round(),
+      combo: _combo,
+      maxCombo: _maxCombo,
+      objectiveIndex: _activeObjective?.objectIndex,
+      objectiveProgress: _activeObjective == null
+          ? 0
+          : _objectiveProgress / _activeObjective!.holdSeconds,
+      objectivesCompleted: _objectivesCompleted,
+      totalObjectives: level.objectives.length,
+      objectiveCompletedPulse: _objectivePulse > 0,
+      stars: _phase == BalancePhase.won
+          ? balanceStars(
+              averageStability: _elapsed > 0
+                  ? _stabilityIntegral / _elapsed
+                  : 100,
+              objectivesCompleted: _objectivesCompleted,
+              totalObjectives: level.objectives.length,
+            )
+          : 0,
     );
   }
 
@@ -352,15 +553,12 @@ class BalanceMasterGame extends FlameGame {
     if (size.x <= 0 || size.y <= 0) return;
     _drawBackground(canvas);
     final platformY = size.y * 0.55;
-    final platformX =
-        size.x / 2 +
-        (level.id == 3 && _phase == BalancePhase.playing
-            ? math.sin(_elapsed * 0.8) * 5
-            : 0);
+    final platformX = size.x / 2 + _platformShift;
     canvas.save();
     canvas.translate(platformX, platformY);
     canvas.rotate(_visualTilt.clamp(-0.08, 0.08));
     _drawPlatform(canvas);
+    _drawObjective(canvas);
     for (var i = 0; i < objects.length; i++) {
       _drawObject(canvas, objects[i], i);
     }
@@ -459,6 +657,58 @@ class BalanceMasterGame extends FlameGame {
     }
   }
 
+  void _drawObjective(Canvas canvas) {
+    final objective = _activeObjective;
+    if (objective != null && _phase == BalancePhase.playing) {
+      final center = _objectiveCenter(objective);
+      final width = platformWidth * objective.widthFactor;
+      final zone = RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(center, 0), width: width, height: 31),
+        const Radius.circular(10),
+      );
+      canvas.drawRRect(
+        zone,
+        Paint()
+          ..color = const Color(0xFF49E8B7).withValues(alpha: 0.18)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+      );
+      canvas.drawRRect(
+        zone,
+        Paint()..color = const Color(0xFF53E7C1).withValues(alpha: 0.25),
+      );
+      canvas.drawRRect(
+        zone,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = const Color(0xFF8DFFE3),
+      );
+      final progressWidth =
+          width * (_objectiveProgress / objective.holdSeconds).clamp(0.0, 1.0);
+      if (progressWidth > 0) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(center - width / 2, 12, progressWidth, 4),
+            const Radius.circular(2),
+          ),
+          Paint()..color = const Color(0xFFC8FFF2),
+        );
+      }
+    }
+    if (_objectivePulse > 0) {
+      final progress = 1 - _objectivePulse / 1.2;
+      canvas.drawCircle(
+        Offset(_completedObjectiveCenter, -2),
+        18 + progress * 30,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..color = const Color(0xFF8DFFE3)
+              .withValues(alpha: (_objectivePulse / 1.2 * 0.7).clamp(0, 1)),
+      );
+    }
+  }
+
   void _drawObject(Canvas canvas, BalanceObjectState object, int index) {
     final falling = _phase == BalancePhase.falling && _fallingIndex == index;
     final progress = falling ? _fallProgress / 0.65 : 0.0;
@@ -469,6 +719,16 @@ class BalanceMasterGame extends FlameGame {
       1 => const Color(0xFF50DDEB),
       _ => const Color(0xFF7BEEAF),
     };
+    if (_activeObjective?.objectIndex == index) {
+      canvas.drawCircle(
+        center,
+        radius + 5,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = const Color(0xFF99FFE7),
+      );
+    }
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(object.x + 3, -7),

@@ -82,6 +82,27 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
 
   String _time(double seconds) => seconds.toStringAsFixed(1);
 
+  String _points(int points) {
+    final digits = points.toString();
+    final groups = <String>[];
+    for (var end = digits.length; end > 0; end -= 3) {
+      groups.insert(0, digits.substring((end - 3).clamp(0, end), end));
+    }
+    return groups.join(' ');
+  }
+
+  String _objectiveLabel(int index) {
+    if (widget.level.objectCount == 1) {
+      return 'OBJETIVO · MANTÉN LA ESFERA EN LA ZONA';
+    }
+    final objectName = switch (index) {
+      0 => 'VIOLETA',
+      1 => 'CELESTE',
+      _ => 'VERDE',
+    };
+    return 'OBJETIVO · LLEVA EL OBJETO $objectName';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,34 +171,134 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                       ],
                     ),
                     const SizedBox(height: 7),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(
-                        value: hud.stability / 100,
-                        minHeight: 7,
-                        backgroundColor: const Color(0xFF172538),
-                        color: hud.stability < 45
-                            ? const Color(0xFFFFA071)
-                            : const Color(0xFF65DECC),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        boxShadow: hud.stability >= 85
+                            ? const [
+                                BoxShadow(
+                                  color: Color(0x5547D9CC),
+                                  blurRadius: 9,
+                                ),
+                              ]
+                            : const [],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: hud.stability / 100,
+                          minHeight: 7,
+                          backgroundColor: const Color(0xFF172538),
+                          color: hud.stability < 45
+                              ? const Color(0xFFFFA071)
+                              : const Color(0xFF65DECC),
+                        ),
                       ),
                     ),
-                    if (hud.impulseWarning) ...[
-                      const SizedBox(height: 16),
-                      const Center(
-                        child: Text(
-                          '⚠ IMPULSO ENTRANTE',
-                          style: TextStyle(
-                            color: Color(0xFFFFC776),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(
+                          'PUNTOS ${_points(hud.score)}',
+                          style: const TextStyle(
+                            color: Color(0xFFB9E9F2),
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        const Spacer(),
+                        if (hud.combo > 1)
+                          Text(
+                            'COMBO x${hud.combo}',
+                            style: const TextStyle(
+                              color: Color(0xFF8DFFE3),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (hud.objectiveIndex != null &&
+                        hud.phase == BalancePhase.playing) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        _objectiveLabel(hud.objectiveIndex!),
+                        style: const TextStyle(
+                          color: Color(0xFF9BFFE5),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ],
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: LinearProgressIndicator(
+                          value: hud.objectiveProgress,
+                          minHeight: 6,
+                          backgroundColor: const Color(0xFF173739),
+                          color: const Color(0xFF72F3CA),
+                        ),
+                      ),
+                    ] else if (hud.objectiveCompletedPulse &&
+                        hud.phase == BalancePhase.playing)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          '✓ OBJETIVO COMPLETADO',
+                          style: TextStyle(
+                            color: Color(0xFF9BFFE5),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ),
           ),
+          if (!_paused)
+            ValueListenableBuilder<BalanceHudState>(
+              valueListenable: _game.hud,
+              builder: (_, hud, _) => hud.impulseWarning || hud.platformWarning
+                  ? Align(
+                      alignment: const Alignment(0, -0.18),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 9,
+                        ),
+                        decoration: _panelDecoration,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              hud.impulseWarning
+                                  ? hud.gustFromLeft
+                                        ? '→'
+                                        : '←'
+                                  : '↔',
+                              style: const TextStyle(
+                                color: Color(0xFFFFCB7A),
+                                fontSize: 38,
+                                height: 1,
+                              ),
+                            ),
+                            Text(
+                              hud.impulseWarning
+                                  ? '⚠ RÁFAGA DESDE LA ${hud.gustFromLeft ? 'IZQUIERDA' : 'DERECHA'}'
+                                  : '⚠ PLATAFORMA INESTABLE',
+                              style: const TextStyle(
+                                color: Color(0xFFFFCB7A),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           if (!_paused)
             ValueListenableBuilder<BalanceHudState>(
               valueListenable: _game.hud,
@@ -374,76 +495,102 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
     ),
   );
 
-  Widget _resultOverlay(BalanceHudState hud, {required bool won}) =>
-      Positioned.fill(
-        child: ColoredBox(
-          color: const Color(0xE9050914),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(26),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    won ? Icons.emoji_events : Icons.south,
-                    color: won
-                        ? const Color(0xFF79E8CB)
-                        : const Color(0xFFFF8D9A),
-                    size: 64,
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    won
-                        ? widget.level.id == balanceMasterLevels.last.id
-                              ? '¡BALANCE MASTER COMPLETADO!'
-                              : '¡EQUILIBRIO PERFECTO!'
-                        : '¡PERDISTE EL EQUILIBRIO!',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Nivel ${widget.level.id}  ·  ${_time(hud.elapsed)} s',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  if (won)
-                    Text(
-                      'Estabilidad promedio: ${hud.averageStability.round()}%',
-                      style: const TextStyle(color: Color(0xFF9CECE0)),
-                    ),
-                  const SizedBox(height: 22),
-                  FilledButton.icon(
-                    onPressed: _game.restart,
-                    icon: const Icon(Icons.refresh),
-                    label: Text(won ? 'JUGAR DE NUEVO' : 'REINTENTAR'),
-                  ),
-                  if (won && widget.level.id < balanceMasterLevels.length)
-                    TextButton.icon(
-                      onPressed: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BalanceMasterScreen(
-                            level: balanceMasterLevels[widget.level.id],
-                          ),
-                        ),
-                      ),
-                      icon: const Icon(Icons.arrow_forward),
-                      label: const Text('SIGUIENTE NIVEL'),
-                    ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('VOLVER A NIVELES'),
-                  ),
-                ],
+  Widget _resultOverlay(
+    BalanceHudState hud, {
+    required bool won,
+  }) => Positioned.fill(
+    child: ColoredBox(
+      color: const Color(0xE9050914),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(26),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                won ? Icons.emoji_events : Icons.south,
+                color: won ? const Color(0xFF79E8CB) : const Color(0xFFFF8D9A),
+                size: 64,
               ),
-            ),
+              const SizedBox(height: 14),
+              Text(
+                won
+                    ? widget.level.id == balanceMasterLevels.last.id
+                          ? '¡BALANCE MASTER COMPLETADO!'
+                          : '¡EQUILIBRIO PERFECTO!'
+                    : '¡PERDISTE EL EQUILIBRIO!',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Nivel ${widget.level.id}  ·  ${_time(hud.elapsed)} s',
+                style: const TextStyle(color: Colors.white70),
+              ),
+              if (won)
+                Text(
+                  'Estabilidad promedio: ${hud.averageStability.round()}%',
+                  style: const TextStyle(color: Color(0xFF9CECE0)),
+                ),
+              if (won) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '${'★' * hud.stars}${'☆' * (3 - hud.stars)}',
+                  style: const TextStyle(
+                    color: Color(0xFFFFD575),
+                    fontSize: 34,
+                    letterSpacing: 5,
+                  ),
+                ),
+                Text(
+                  'Objetivos: ${hud.objectivesCompleted}/${hud.totalObjectives}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                Text(
+                  'Combo máximo: x${hud.maxCombo}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+              Text(
+                'Puntos: ${_points(hud.score)}',
+                style: const TextStyle(
+                  color: Color(0xFFB9F7FC),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 22),
+              FilledButton.icon(
+                onPressed: _game.restart,
+                icon: const Icon(Icons.refresh),
+                label: Text(won ? 'JUGAR DE NUEVO' : 'REINTENTAR'),
+              ),
+              if (won && widget.level.id < balanceMasterLevels.length)
+                TextButton.icon(
+                  onPressed: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BalanceMasterScreen(
+                        level: balanceMasterLevels[widget.level.id],
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text('SIGUIENTE NIVEL'),
+                ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('VOLVER A NIVELES'),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   BoxDecoration get _panelDecoration => BoxDecoration(
     color: const Color(0xF2132136),
