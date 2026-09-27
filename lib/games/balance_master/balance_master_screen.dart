@@ -4,6 +4,8 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/sensors/accelerometer_service.dart';
+import '../../core/audio/audio_service.dart';
+import '../../core/theme/app_theme.dart';
 import 'balance_master_game.dart';
 import 'balance_master_level.dart';
 
@@ -32,6 +34,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AppAudio.instance.claimSilence(this);
     _game = BalanceMasterGame(
       level: widget.level,
       accelerometerService: widget.accelerometerService,
@@ -40,6 +43,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
 
   @override
   void dispose() {
+    AppAudio.instance.releaseMusic(this);
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_game.close());
     super.dispose();
@@ -106,7 +110,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF050914),
+      backgroundColor: AppColors.gameBackground,
       body: Stack(
         children: [
           GameWidget(game: _game),
@@ -187,10 +191,10 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                         child: LinearProgressIndicator(
                           value: hud.stability / 100,
                           minHeight: 7,
-                          backgroundColor: const Color(0xFF172538),
+                          backgroundColor: const Color(0xFFE1EAF2),
                           color: hud.stability < 45
-                              ? const Color(0xFFFFA071)
-                              : const Color(0xFF65DECC),
+                              ? const Color(0xFFE4775D)
+                              : AppColors.balanceMaster,
                         ),
                       ),
                     ),
@@ -200,7 +204,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                         Text(
                           'PUNTOS ${_points(hud.score)}',
                           style: const TextStyle(
-                            color: Color(0xFFB9E9F2),
+                            color: AppColors.textPrimary,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -210,7 +214,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                           Text(
                             'COMBO x${hud.combo}',
                             style: const TextStyle(
-                              color: Color(0xFF8DFFE3),
+                              color: AppColors.balanceMaster,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -223,7 +227,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                       Text(
                         _objectiveLabel(hud.objectiveIndex!),
                         style: const TextStyle(
-                          color: Color(0xFF9BFFE5),
+                          color: AppColors.balanceMaster,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -234,8 +238,8 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                         child: LinearProgressIndicator(
                           value: hud.objectiveProgress,
                           minHeight: 6,
-                          backgroundColor: const Color(0xFF173739),
-                          color: const Color(0xFF72F3CA),
+                          backgroundColor: const Color(0xFFDCEAF0),
+                          color: AppColors.balanceMaster,
                         ),
                       ),
                     ] else if (hud.objectiveCompletedPulse &&
@@ -245,7 +249,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                         child: Text(
                           '✓ OBJETIVO COMPLETADO',
                           style: TextStyle(
-                            color: Color(0xFF9BFFE5),
+                            color: AppColors.balanceMaster,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -278,7 +282,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                                         : '←'
                                   : '↔',
                               style: const TextStyle(
-                                color: Color(0xFFFFCB7A),
+                                color: Color(0xFFAD6700),
                                 fontSize: 38,
                                 height: 1,
                               ),
@@ -288,7 +292,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
                                   ? '⚠ RÁFAGA DESDE LA ${hud.gustFromLeft ? 'IZQUIERDA' : 'DERECHA'}'
                                   : '⚠ PLATAFORMA INESTABLE',
                               style: const TextStyle(
-                                color: Color(0xFFFFCB7A),
+                                color: Color(0xFFAD6700),
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -347,9 +351,9 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
   Widget _card(String title, String value) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
     decoration: BoxDecoration(
-      color: const Color(0xDD111D30),
+      color: const Color(0xEFFFFFFF),
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      border: Border.all(color: AppColors.border),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,7 +361,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
         Text(
           title,
           style: const TextStyle(
-            color: Color(0xFF83A0AD),
+            color: AppColors.textSecondary,
             fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1,
@@ -367,7 +371,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),
@@ -384,13 +388,13 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.balance, size: 56, color: Color(0xFF72E3E9)),
+          const Icon(Icons.balance, size: 56, color: AppColors.balanceMaster),
           const SizedBox(height: 12),
           const Text(
             'ENCUENTRA TU CENTRO',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 21,
               fontWeight: FontWeight.bold,
             ),
@@ -400,7 +404,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
             'Mantén el teléfono cómodo y estable.\n'
             'Esa posición será el punto neutral.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, height: 1.4),
+            style: TextStyle(color: AppColors.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
@@ -422,10 +426,10 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
     child: Text(
       remaining > 0.6 ? '${remaining.ceil() - 1}' : '¡EQUILIBRA!',
       style: const TextStyle(
-        color: Color(0xFFB9F7FC),
+        color: AppColors.balanceMaster,
         fontSize: 46,
         fontWeight: FontWeight.w900,
-        shadows: [Shadow(color: Color(0xFF42C7D8), blurRadius: 20)],
+        shadows: [Shadow(color: AppColors.balanceMaster, blurRadius: 14)],
       ),
     ),
   );
@@ -438,7 +442,7 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
       children: [
         const Text(
           'CONTROL: TÁCTIL  ·  DESLIZA SUAVEMENTE',
-          style: TextStyle(color: Colors.white70, fontSize: 11),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
         ),
         Slider(
           value: _touchTilt,
@@ -459,128 +463,36 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
 
   Widget _pauseOverlay() => Positioned.fill(
     child: ColoredBox(
-      color: const Color(0xEA050914),
+      color: const Color(0x99F6F8FC),
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'PAUSA',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () => _setPaused(false),
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('CONTINUAR'),
-            ),
-            TextButton(
-              onPressed: () {
-                _game.restart();
-                _setPaused(false);
-              },
-              child: const Text('REINICIAR NIVEL'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('VOLVER A NIVELES'),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  Widget _resultOverlay(
-    BalanceHudState hud, {
-    required bool won,
-  }) => Positioned.fill(
-    child: ColoredBox(
-      color: const Color(0xE9050914),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(26),
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
+          decoration: _panelDecoration,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                won ? Icons.emoji_events : Icons.south,
-                color: won ? const Color(0xFF79E8CB) : const Color(0xFFFF8D9A),
-                size: 64,
-              ),
-              const SizedBox(height: 14),
-              Text(
-                won
-                    ? widget.level.id == balanceMasterLevels.last.id
-                          ? '¡BALANCE MASTER COMPLETADO!'
-                          : '¡EQUILIBRIO PERFECTO!'
-                    : '¡PERDISTE EL EQUILIBRIO!',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 25,
+              const Text(
+                'PAUSA',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Nivel ${widget.level.id}  ·  ${_time(hud.elapsed)} s',
-                style: const TextStyle(color: Colors.white70),
-              ),
-              if (won)
-                Text(
-                  'Estabilidad promedio: ${hud.averageStability.round()}%',
-                  style: const TextStyle(color: Color(0xFF9CECE0)),
-                ),
-              if (won) ...[
-                const SizedBox(height: 8),
-                Text(
-                  '${'★' * hud.stars}${'☆' * (3 - hud.stars)}',
-                  style: const TextStyle(
-                    color: Color(0xFFFFD575),
-                    fontSize: 34,
-                    letterSpacing: 5,
-                  ),
-                ),
-                Text(
-                  'Objetivos: ${hud.objectivesCompleted}/${hud.totalObjectives}',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-                Text(
-                  'Combo máximo: x${hud.maxCombo}',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
-              Text(
-                'Puntos: ${_points(hud.score)}',
-                style: const TextStyle(
-                  color: Color(0xFFB9F7FC),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
               FilledButton.icon(
-                onPressed: _game.restart,
-                icon: const Icon(Icons.refresh),
-                label: Text(won ? 'JUGAR DE NUEVO' : 'REINTENTAR'),
+                onPressed: () => _setPaused(false),
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('CONTINUAR'),
               ),
-              if (won && widget.level.id < balanceMasterLevels.length)
-                TextButton.icon(
-                  onPressed: () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BalanceMasterScreen(
-                        level: balanceMasterLevels[widget.level.id],
-                      ),
-                    ),
-                  ),
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Text('SIGUIENTE NIVEL'),
-                ),
+              TextButton(
+                onPressed: () {
+                  _game.restart();
+                  _setPaused(false);
+                },
+                child: const Text('REINICIAR NIVEL'),
+              ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('VOLVER A NIVELES'),
@@ -592,10 +504,115 @@ class _BalanceMasterScreenState extends State<BalanceMasterScreen>
     ),
   );
 
+  Widget _resultOverlay(
+    BalanceHudState hud, {
+    required bool won,
+  }) => Positioned.fill(
+    child: ColoredBox(
+      color: const Color(0x99F6F8FC),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(26),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: _panelDecoration,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  won ? Icons.emoji_events : Icons.south,
+                  color: won
+                      ? AppColors.balanceMaster
+                      : const Color(0xFFE4775D),
+                  size: 64,
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  won
+                      ? widget.level.id == balanceMasterLevels.last.id
+                            ? '¡BALANCE MASTER COMPLETADO!'
+                            : '¡EQUILIBRIO PERFECTO!'
+                      : '¡PERDISTE EL EQUILIBRIO!',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Nivel ${widget.level.id}  ·  ${_time(hud.elapsed)} s',
+                  style: const TextStyle(color: AppColors.textSecondary),
+                ),
+                if (won)
+                  Text(
+                    'Estabilidad promedio: ${hud.averageStability.round()}%',
+                    style: const TextStyle(color: AppColors.balanceMaster),
+                  ),
+                if (won) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    '${'★' * hud.stars}${'☆' * (3 - hud.stars)}',
+                    style: const TextStyle(
+                      color: Color(0xFFD99A21),
+                      fontSize: 34,
+                      letterSpacing: 5,
+                    ),
+                  ),
+                  Text(
+                    'Objetivos: ${hud.objectivesCompleted}/${hud.totalObjectives}',
+                    style: const TextStyle(color: AppColors.textSecondary),
+                  ),
+                  Text(
+                    'Combo máximo: x${hud.maxCombo}',
+                    style: const TextStyle(color: AppColors.textSecondary),
+                  ),
+                ],
+                Text(
+                  'Puntos: ${_points(hud.score)}',
+                  style: const TextStyle(
+                    color: AppColors.balanceMaster,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                FilledButton.icon(
+                  onPressed: _game.restart,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(won ? 'JUGAR DE NUEVO' : 'REINTENTAR'),
+                ),
+                if (won && widget.level.id < balanceMasterLevels.length)
+                  TextButton.icon(
+                    onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BalanceMasterScreen(
+                          level: balanceMasterLevels[widget.level.id],
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.arrow_forward),
+                    label: const Text('SIGUIENTE NIVEL'),
+                  ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('VOLVER A NIVELES'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
   BoxDecoration get _panelDecoration => BoxDecoration(
-    color: const Color(0xF2132136),
+    color: const Color(0xF7FFFFFF),
     borderRadius: BorderRadius.circular(22),
-    border: Border.all(color: const Color(0xFF58B9C8).withValues(alpha: 0.35)),
-    boxShadow: const [BoxShadow(color: Color(0x5500C5D7), blurRadius: 24)],
+    border: Border.all(color: AppColors.border),
+    boxShadow: const [
+      BoxShadow(color: Color(0x2220334D), blurRadius: 22, offset: Offset(0, 8)),
+    ],
   );
 }

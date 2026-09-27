@@ -1,6 +1,16 @@
 # AccelLab
 
-App Flutter con dos minijuegos que muestran distintas formas de usar el acelerómetro.
+App Flutter con minijuegos que muestran distintas formas de usar el acelerómetro.
+
+## AstroTilt
+
+Shooter espacial de tres misiones controlado inclinando el teléfono en ambos
+ejes. Calibra una posición cómoda antes de despegar; la nave se mueve con
+suavizado e inercia ligera y dispara automáticamente. Esquiva naves y
+meteoritos, recoge escudos, disparo doble y reparaciones, y derrota al jefe
+final en la tercera misión. El control táctil alternativo permite jugar en un
+emulador. La pausa detiene la simulación y se activa automáticamente al salir
+de la app.
 
 ## Tilt Maze
 

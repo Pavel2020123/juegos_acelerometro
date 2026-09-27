@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/theme/app_theme.dart';
 import 'game_hub_screen.dart';
 
 void main() {
@@ -14,13 +15,7 @@ class AccelLabApp extends StatelessWidget {
     return MaterialApp(
       title: 'AccelLab',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF8B6CFF),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
       home: const GameHubScreen(),
     );
   }

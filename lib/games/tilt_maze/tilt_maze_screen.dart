@@ -4,7 +4,9 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import 'tilt_maze_level.dart';
+import '../../core/audio/audio_service.dart';
 import '../../core/sensors/accelerometer_service.dart';
+import '../../core/theme/app_theme.dart';
 import 'tilt_maze_game.dart';
 
 class TiltMazeScreen extends StatefulWidget {
@@ -32,8 +34,10 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
     setState(() => _paused = value);
     if (value) {
       _game.pausePlay();
+      AppAudio.instance.setGamePaused(true);
     } else {
       _game.resumePlay();
+      AppAudio.instance.setGamePaused(false);
     }
   }
 
@@ -50,11 +54,27 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
     _game = TiltMazeGame(
       level: widget.level,
       accelerometerService: widget.accelerometerService,
+      onAudioEvent: (event) {
+        switch (event) {
+          case TiltMazeAudioEvent.ice:
+            AppAudio.instance.play(AppSound.ice);
+          case TiltMazeAudioEvent.laser:
+            AppAudio.instance.play(AppSound.laser);
+          case TiltMazeAudioEvent.checkpoint:
+            AppAudio.instance.play(AppSound.checkpoint);
+          case TiltMazeAudioEvent.respawn:
+            AppAudio.instance.play(AppSound.respawn);
+          case TiltMazeAudioEvent.victory:
+            AppAudio.instance.play(AppSound.victory);
+        }
+      },
     );
+    AppAudio.instance.claimSilence(this);
   }
 
   @override
   void dispose() {
+    AppAudio.instance.releaseMusic(this);
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_game.close());
 
@@ -85,7 +105,7 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080C16),
+      backgroundColor: AppColors.gameBackground,
       body: Stack(
         children: [
           // =========================
@@ -99,48 +119,63 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
             left: 16,
             right: 16,
             child: SafeArea(
-              child: Row(
-                children: [
-                  IconButton.filledTonal(
-                    tooltip: 'Volver a niveles',
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton.filledTonal(
-                    tooltip: _paused ? 'Continuar' : 'Pausar',
-                    onPressed: () => _setPaused(!_paused),
-                    icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
-                  ),
-                  const Spacer(),
-                  IconButton.filledTonal(
-                    tooltip: 'Calibrar posición actual',
-                    onPressed: () {
-                      final calibrated = _game.calibrate();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            calibrated
-                                ? 'Posición calibrada'
-                                : 'Activa el control táctil si no hay sensor',
-                          ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.tune),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton.filledTonal(
-                    tooltip: _touchMode
-                        ? 'Usar acelerómetro'
-                        : 'Usar control táctil',
-                    onPressed: () => _setTouchMode(!_touchMode),
-                    icon: Icon(
-                      _touchMode ? Icons.screen_rotation : Icons.touch_app,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xEFFFFFFF),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x2220334D),
+                      blurRadius: 14,
+                      offset: Offset(0, 4),
                     ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Row(
+                    children: [
+                      IconButton.filledTonal(
+                        tooltip: 'Volver a niveles',
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back),
+                      ),
+                      const SizedBox(width: 6),
+                      IconButton.filledTonal(
+                        tooltip: _paused ? 'Continuar' : 'Pausar',
+                        onPressed: () => _setPaused(!_paused),
+                        icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+                      ),
+                      const Spacer(),
+                      IconButton.filledTonal(
+                        tooltip: 'Calibrar posición actual',
+                        onPressed: () {
+                          final calibrated = _game.calibrate();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                calibrated ? 'Posición calibrada' : 'Activa el control táctil si no hay sensor',
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.tune),
+                      ),
+                      const SizedBox(width: 6),
+                      IconButton.filledTonal(
+                        tooltip: _touchMode
+                            ? 'Usar acelerómetro'
+                            : 'Usar control táctil',
+                        onPressed: () => _setTouchMode(!_touchMode),
+                        icon: Icon(
+                          _touchMode ? Icons.screen_rotation : Icons.touch_app,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -160,12 +195,12 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
                     height: 130,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xCC17233B),
-                      border: Border.all(color: Colors.white54, width: 2),
+                      color: const Color(0xDFFFFFFF),
+                      border: Border.all(color: AppColors.border, width: 2),
                     ),
                     child: const Icon(
                       Icons.control_camera,
-                      color: Colors.white70,
+                      color: AppColors.tiltMaze,
                       size: 45,
                     ),
                   ),
@@ -184,14 +219,17 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
                       ? const SizedBox.shrink()
                       : const DecoratedBox(
                           decoration: BoxDecoration(
-                            color: Color(0xDD17233B),
+                            color: Color(0xF7FFFFFF),
                             borderRadius: BorderRadius.all(Radius.circular(12)),
+                            border: Border.fromBorderSide(
+                              BorderSide(color: AppColors.border),
+                            ),
                           ),
                           child: Padding(
                             padding: EdgeInsets.all(10),
                             child: Text(
                               'Sin sensor: usa el control táctil',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: AppColors.textPrimary),
                             ),
                           ),
                         ),
@@ -202,50 +240,66 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
           if (_paused)
             Positioned.fill(
               child: ColoredBox(
-                color: const Color(0xDD050711),
+                color: const Color(0x99F6F8FC),
                 child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'PAUSA',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
+                  child: Container(
+                    margin: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppColors.border),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x2220334D),
+                          blurRadius: 22,
+                          offset: Offset(0, 8),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Sensibilidad: ${_sensitivity.toStringAsFixed(1)}×',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      SizedBox(
-                        width: 260,
-                        child: Slider(
-                          value: _sensitivity,
-                          min: 0.5,
-                          max: 1.5,
-                          divisions: 10,
-                          onChanged: (value) {
-                            setState(() => _sensitivity = value);
-                            _game.sensitivity = value;
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'PAUSA',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Sensibilidad: ${_sensitivity.toStringAsFixed(1)}×',
+                          style: const TextStyle(color: AppColors.textPrimary),
+                        ),
+                        SizedBox(
+                          width: 260,
+                          child: Slider(
+                            value: _sensitivity,
+                            min: 0.5,
+                            max: 1.5,
+                            divisions: 10,
+                            onChanged: (value) {
+                              setState(() => _sensitivity = value);
+                              _game.sensitivity = value;
+                            },
+                          ),
+                        ),
+                        FilledButton.icon(
+                          onPressed: () => _setPaused(false),
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('CONTINUAR'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            _game.restartLevel();
+                            _setPaused(false);
                           },
+                          child: const Text('REINICIAR NIVEL'),
                         ),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => _setPaused(false),
-                        icon: const Icon(Icons.play_arrow),
-                        label: const Text('CONTINUAR'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          _game.restartLevel();
-                          _setPaused(false);
-                        },
-                        child: const Text('REINICIAR NIVEL'),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -290,7 +344,7 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
                     builder: (context, hud, child) {
                       return Row(
                         children: [
-                          Icon(Icons.flag, size: 18, color: Colors.amber),
+                          Icon(Icons.flag, size: 18, color: AppColors.tiltMaze),
 
                           const SizedBox(width: 6),
 
@@ -346,13 +400,14 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black87,
+                    color: const Color(0xF7FFFFFF),
                     borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: const Text(
                     '¡CAÍSTE!',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -373,74 +428,90 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
               }
 
               return Container(
-                color: Colors.black.withValues(alpha: 0.78),
+                color: const Color(0x99F6F8FC),
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.emoji_events,
-                      color: Colors.amber,
-                      size: 72,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Text(
-                      widget.level.id == tiltMazeLevels.last.id
-                          ? '¡COMPLETASTE TILT MAZE!'
-                          : '¡NIVEL COMPLETADO!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 27,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Text(
-                      'Tiempo: '
-                      '${_formatTime(hud.time)}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 18,
-                      ),
-                    ),
-
-                    const SizedBox(height: 26),
-
-                    SizedBox(
-                      width: 210,
-                      height: 52,
-                      child: FilledButton.icon(
-                        onPressed: () {
-                          _game.restartLevel();
-                        },
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('JUGAR DE NUEVO'),
-                      ),
-                    ),
-                    if (widget.level.id < tiltMazeLevels.length) ...[
-                      const SizedBox(height: 10),
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TiltMazeScreen(
-                                level: tiltMazeLevels[widget.level.id],
-                              ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.arrow_forward),
-                        label: const Text('SIGUIENTE NIVEL'),
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 390),
+                  padding: const EdgeInsets.all(26),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x2220334D),
+                        blurRadius: 22,
+                        offset: Offset(0, 8),
                       ),
                     ],
-                  ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.emoji_events,
+                        color: Colors.amber,
+                        size: 72,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Text(
+                        widget.level.id == tiltMazeLevels.last.id
+                            ? '¡COMPLETASTE TILT MAZE!'
+                            : '¡NIVEL COMPLETADO!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 27,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Text(
+                        'Tiempo: '
+                        '${_formatTime(hud.time)}',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 18,
+                        ),
+                      ),
+
+                      const SizedBox(height: 26),
+
+                      SizedBox(
+                        width: 210,
+                        height: 52,
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            _game.restartLevel();
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('JUGAR DE NUEVO'),
+                        ),
+                      ),
+                      if (widget.level.id < tiltMazeLevels.length) ...[
+                        const SizedBox(height: 10),
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TiltMazeScreen(
+                                  level: tiltMazeLevels[widget.level.id],
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.arrow_forward),
+                          label: const Text('SIGUIENTE NIVEL'),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -454,17 +525,26 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF121A2A).withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: const Color(0xEFFFFFFF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A20334D),
+            blurRadius: 12,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white38,
+            style: TextStyle(
+              color: title == 'TILT MAZE'
+                  ? AppColors.tiltMaze
+                  : AppColors.textSecondary,
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
@@ -472,8 +552,10 @@ class _TiltMazeScreenState extends State<TiltMazeScreen>
           const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: title == 'TILT MAZE'
+                  ? AppColors.tiltMaze
+                  : AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),

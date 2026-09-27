@@ -29,6 +29,8 @@ class TiltMazeHudState {
   final bool falling;
 }
 
+enum TiltMazeAudioEvent { ice, laser, checkpoint, respawn, victory }
+
 // ============================================================
 // JUEGO
 // ============================================================
@@ -37,9 +39,11 @@ class TiltMazeGame extends FlameGame {
   TiltMazeGame({
     required this.level,
     AccelerometerService? accelerometerService,
+    this.onAudioEvent,
   }) : _accelerometerService = accelerometerService ?? AccelerometerService();
 
   final TiltMazeLevel level;
+  final void Function(TiltMazeAudioEvent)? onAudioEvent;
   final ValueNotifier<bool> sensorAvailable = ValueNotifier(false);
   double sensitivity = 1;
   bool useTouch = false;
@@ -99,7 +103,7 @@ class TiltMazeGame extends FlameGame {
   // COLORES
   // ============================================================
 
-  static const Color _backgroundColor = Color(0xFF050711);
+  static const Color _backgroundColor = Color(0xFF18243A);
 
   static const Color _trackTopColor = Color(0xFF17233B);
   static const Color _trackShadowColor = Color(0xFF070A12);
@@ -656,7 +660,9 @@ class TiltMazeGame extends FlameGame {
 
     final point = Offset(ball.position.x, ball.position.y);
 
-    _onIce = _iceZoneRects.any((rect) => rect.contains(point));
+    final onIce = _iceZoneRects.any((rect) => rect.contains(point));
+    if (onIce && !_onIce) onAudioEvent?.call(TiltMazeAudioEvent.ice);
+    _onIce = onIce;
   }
 
   // ============================================================
@@ -672,6 +678,7 @@ class TiltMazeGame extends FlameGame {
 
     for (final laser in _lasers) {
       if (laser.collidesWithBall(ball.position, _ballRadius)) {
+        if (!_falling) onAudioEvent?.call(TiltMazeAudioEvent.laser);
         _startFall();
         return;
       }
@@ -766,6 +773,8 @@ class TiltMazeGame extends FlameGame {
 
         _publishHud();
 
+        onAudioEvent?.call(TiltMazeAudioEvent.checkpoint);
+
         break;
       }
     }
@@ -783,6 +792,7 @@ class TiltMazeGame extends FlameGame {
     }
 
     _completed = true;
+    onAudioEvent?.call(TiltMazeAudioEvent.victory);
 
     _velocity = Vector2.zero();
 
@@ -829,6 +839,8 @@ class TiltMazeGame extends FlameGame {
     }
 
     ball.position = _respawnPosition.clone();
+    onAudioEvent?.call(TiltMazeAudioEvent.respawn);
+    _onIce = false;
 
     _velocity = Vector2.zero();
 

@@ -159,7 +159,7 @@ class BalanceMasterGame extends FlameGame {
   double get platformShift => _platformShift;
 
   @override
-  Color backgroundColor() => const Color(0xFF050914);
+  Color backgroundColor() => const Color(0xFF18243A);
 
   @override
   Future<void> onLoad() async {

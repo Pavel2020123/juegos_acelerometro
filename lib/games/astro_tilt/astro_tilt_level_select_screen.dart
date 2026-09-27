@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../app_logo.dart';
 import '../../core/theme/app_theme.dart';
-import 'balance_master_level.dart';
-import 'balance_master_screen.dart';
+import 'astro_tilt_level.dart';
+import 'astro_tilt_screen.dart';
 
-class BalanceMasterLevelSelectScreen extends StatelessWidget {
-  const BalanceMasterLevelSelectScreen({super.key});
+class AstroTiltLevelSelectScreen extends StatelessWidget {
+  const AstroTiltLevelSelectScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,17 +33,17 @@ class BalanceMasterLevelSelectScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Balance Master',
+                          'AstroTilt',
                           style: TextStyle(
-                            color: AppColors.balanceMaster,
-                            fontSize: 26,
+                            color: AppColors.astroTilt,
+                            fontSize: 27,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.4,
                           ),
                         ),
                         SizedBox(height: 3),
                         Text(
-                          'Equilibrio y estabilidad',
+                          'Pilota. Esquiva. Sobrevive.',
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
@@ -57,16 +57,16 @@ class BalanceMasterLevelSelectScreen extends StatelessWidget {
               const SizedBox(height: 26),
               Expanded(
                 child: ListView.separated(
-                  itemCount: balanceMasterLevels.length,
+                  itemCount: astroTiltLevels.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 13),
                   itemBuilder: (context, index) {
-                    final level = balanceMasterLevels[index];
-                    return _BalanceLevelCard(
+                    final level = astroTiltLevels[index];
+                    return _AstroLevelCard(
                       level: level,
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => BalanceMasterScreen(level: level),
+                          builder: (_) => AstroTiltScreen(level: level),
                         ),
                       ),
                     );
@@ -81,17 +81,17 @@ class BalanceMasterLevelSelectScreen extends StatelessWidget {
   }
 }
 
-class _BalanceLevelCard extends StatelessWidget {
-  const _BalanceLevelCard({required this.level, required this.onPressed});
+class _AstroLevelCard extends StatelessWidget {
+  const _AstroLevelCard({required this.level, required this.onPressed});
 
-  final BalanceMasterLevel level;
+  final AstroTiltLevel level;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     final icon = switch (level.id) {
-      1 => Icons.adjust_rounded,
-      2 => Icons.filter_2_rounded,
+      1 => Icons.rocket_launch_rounded,
+      2 => Icons.blur_on_rounded,
       _ => Icons.auto_awesome_rounded,
     };
     return Material(
@@ -120,10 +120,10 @@ class _BalanceLevelCard extends StatelessWidget {
                 width: 54,
                 height: 54,
                 decoration: BoxDecoration(
-                  color: AppColors.balanceMaster.withValues(alpha: 0.1),
+                  color: AppColors.astroTilt.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: AppColors.balanceMaster, size: 27),
+                child: Icon(icon, color: AppColors.astroTilt, size: 27),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -148,15 +148,13 @@ class _BalanceLevelCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.balanceMaster.withValues(
-                              alpha: 0.09,
-                            ),
+                            color: AppColors.astroTilt.withValues(alpha: 0.09),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             level.difficulty,
                             style: const TextStyle(
-                              color: AppColors.balanceMaster,
+                              color: AppColors.astroTilt,
                               fontSize: 9,
                               fontWeight: FontWeight.w800,
                             ),
@@ -184,7 +182,7 @@ class _BalanceLevelCard extends StatelessWidget {
               const SizedBox(width: 7),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.balanceMaster,
+                color: AppColors.astroTilt,
               ),
             ],
           ),
