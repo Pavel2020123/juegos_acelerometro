@@ -7,7 +7,7 @@ class BalanceObjective {
     this.widthFactor = 0.25,
     this.availableSeconds = 7,
   });
-
+//hola 
   final double appearAt;
   final int objectIndex;
 
