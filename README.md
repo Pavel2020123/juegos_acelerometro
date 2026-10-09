@@ -1,38 +1,50 @@
 # AccelLab
 
-App Flutter con minijuegos que muestran distintas formas de usar el acelerómetro.
+AccelLab es una app Flutter educativa para experimentar con sensores de movimiento mediante tres minijuegos activos:
 
-## AstroTilt
+- **Tilt Maze** usa el acelerómetro para guiar una bolita por tres laberintos.
+- **Gyro Aim** usa el giroscopio para mover una mira y acertar objetivos.
+- **AstroTilt** usa el acelerómetro para pilotar una nave espacial.
 
-Shooter espacial de tres misiones controlado inclinando el teléfono en ambos
-ejes. Calibra una posición cómoda antes de despegar; la nave se mueve con
-suavizado e inercia ligera y dispara automáticamente. Esquiva naves y
-meteoritos, recoge escudos, disparo doble y reparaciones, y derrota al jefe
-final en la tercera misión. El control táctil alternativo permite jugar en un
-emulador. La pausa detiene la simulación y se activa automáticamente al salir
-de la app.
+Balance Master se conserva en el repositorio para no perder su lógica y sus pruebas, pero ya no aparece en el catálogo principal.
 
-## Tilt Maze
+## Gyro Aim
 
-Laberinto con tres niveles, checkpoints, hielo y láseres. Inclina el teléfono para guiar la esfera hasta el portal. Pasa por los checkpoints en orden; si caes, reapareces en el último.
+Gyro Aim recibe velocidad angular real desde `gyroscopeEventStream()` de `sensors_plus`. En posición vertical, el eje Y del giroscopio controla el desplazamiento horizontal de la mira y el eje X controla el desplazamiento vertical. Las lecturas están en radianes por segundo; no representan un ángulo absoluto.
 
-## Balance Master
+Al comenzar una partida se toman lecturas con el teléfono quieto para estimar el sesgo. Después se integra la velocidad angular con el tiempo transcurrido de un `Stopwatch` monotónico. El intervalo se limita para impedir saltos cuando la app vuelve del segundo plano, se aplica una zona muerta contra el ruido y se suaviza la entrada. El botón **Centrar mira** permite corregir la deriva acumulada. La sensibilidad se puede ajustar durante la partida.
 
-Juego de equilibrio con tres niveles de 20, 25 y 30 segundos. Mantén uno, dos o tres objetos sobre una plataforma flotante usando inclinaciones pequeñas. Los niveles avanzados añaden bordes peligrosos e impulsos anunciados con anticipación.
+Cada ronda dura 30 segundos. Hay un objetivo visible a la vez, cada acierto suma 10 puntos y los resultados muestran aciertos, disparos y precisión. El juego pausa al enviar la app a segundo plano, no reanuda por sí solo y libera la suscripción al salir.
 
-Durante la ronda aparecen zonas luminosas: mantén dentro el objeto indicado para llenar la barra y ganar puntos. La estabilidad alta forma combos; los movimientos bruscos los rompen. El nivel 3 anuncia ráfagas laterales y pequeños desplazamientos de la plataforma. Al ganar recibes de una a tres estrellas según la estabilidad y los objetivos completados.
+## Laboratorio de sensores
 
-Antes de cada ronda, sostén el teléfono en una posición cómoda y pulsa **Calibrar**. Tras la cuenta regresiva comienza el cronómetro. La barra de estabilidad refleja cambios en la lectura del sensor y se recupera gradualmente al sostener el teléfono estable. Puedes pausar, reintentar o cambiar al control táctil para probarlo en un emulador.
+Desde el catálogo se puede abrir **Laboratorio de sensores** para observar en tiempo real X, Y y Z del acelerómetro en m/s² y del giroscopio en rad/s. Ambas suscripciones se cancelan al abandonar la pantalla.
 
-## Controles
+## Demostración
 
-Ambos juegos ofrecen un modo táctil alternativo y pausa. Tilt Maze permite recalibrar y ajustar la sensibilidad durante la partida. Balance Master pide calibración al iniciar cada ronda y muestra estabilidad en tiempo real.
+1. Abre AccelLab y muestra el catálogo de Tilt Maze, Gyro Aim y AstroTilt.
+2. Entra en el laboratorio para explicar la diferencia entre aceleración y velocidad angular.
+3. Abre Gyro Aim, mantén el celular vertical y pulsa **Iniciar partida**.
+4. Durante la calibración deja el teléfono quieto; después gíralo suavemente para llevar la mira al objetivo.
+5. Pulsa **Disparar**, muestra la puntuación y vuelve al catálogo para continuar con AstroTilt.
 
-## Desarrollo
+## Ejecutar y probar
 
-```sh
+```powershell
 flutter pub get
 flutter run
-flutter test
+dart format .
 flutter analyze
+flutter test
+flutter build apk --debug
 ```
+
+En este equipo, el SDK de Flutter debe estar configurado en `C:\flutter_sdk` para evitar el problema de hooks nativos causado por espacios en la ruta del usuario. La comprobación de ejes, signo y sensibilidad debe hacerse con un teléfono físico; las pruebas automatizadas usan un stream de giroscopio simulado y no sustituyen esa verificación.
+
+## Estructura relevante
+
+- `lib/core/sensors/gyroscope_service.dart`: suscripción y ciclo de vida del giroscopio.
+- `lib/games/gyro_aim/gyro_aim_game.dart`: integración temporal, calibración, objetivos, puntuación y fases.
+- `lib/games/gyro_aim/gyro_aim_screen.dart`: interfaz, mira, controles, pausa y resultados.
+- `lib/screens/sensor_lab/sensor_lab_screen.dart`: visualización de ambos sensores.
+- `test/gyro_aim_test.dart`: pruebas deterministas de la lógica con un servicio simulado.

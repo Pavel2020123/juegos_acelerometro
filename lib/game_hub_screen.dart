@@ -4,8 +4,9 @@ import 'app_logo.dart';
 import 'core/audio/audio_service.dart';
 import 'core/theme/app_theme.dart';
 import 'games/astro_tilt/astro_tilt_level_select_screen.dart';
-import 'games/balance_master/balance_master_level_select_screen.dart';
+import 'games/gyro_aim/gyro_aim_screen.dart';
 import 'games/tilt_maze/tilt_maze_level_select_screen.dart';
+import 'screens/sensor_lab/sensor_lab_screen.dart';
 
 class GameHubScreen extends StatefulWidget {
   const GameHubScreen({super.key});
@@ -82,20 +83,24 @@ class _GameHubScreenState extends State<GameHubScreen>
                     (
                       title: 'TILT MAZE',
                       subtitle: 'Precisión e inclinación',
+                      sensor: 'ACELERÓMETRO',
                       icon: Icons.route_rounded,
                       accent: AppColors.tiltMaze,
                       screen: const TiltMazeLevelSelectScreen(),
                     ),
                     (
-                      title: 'BALANCE MASTER',
-                      subtitle: 'Equilibrio y estabilidad',
-                      icon: Icons.balance_rounded,
-                      accent: AppColors.balanceMaster,
-                      screen: const BalanceMasterLevelSelectScreen(),
+                      title: 'GYRO AIM',
+                      subtitle:
+                          'Gira el celular, apunta y acierta a los objetivos.',
+                      sensor: 'GIROSCOPIO',
+                      icon: Icons.gps_fixed_rounded,
+                      accent: const Color(0xFF0891B2),
+                      screen: const GyroAimScreen(),
                     ),
                     (
                       title: 'ASTROTILT',
                       subtitle: 'Control espacial',
+                      sensor: 'ACELERÓMETRO',
                       icon: Icons.rocket_launch_rounded,
                       accent: AppColors.astroTilt,
                       screen: const AstroTiltLevelSelectScreen(),
@@ -105,6 +110,7 @@ class _GameHubScreenState extends State<GameHubScreen>
                   return _GameCard(
                     title: game.title,
                     subtitle: game.subtitle,
+                    sensor: game.sensor,
                     icon: game.icon,
                     accent: game.accent,
                     onTap: () => Navigator.push(
@@ -113,6 +119,19 @@ class _GameHubScreenState extends State<GameHubScreen>
                     ),
                   );
                 },
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 28),
+              sliver: SliverToBoxAdapter(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SensorLabScreen()),
+                  ),
+                  icon: const Icon(Icons.sensors_rounded),
+                  label: const Text('ABRIR LABORATORIO DE SENSORES'),
+                ),
               ),
             ),
           ],
@@ -126,6 +145,7 @@ class _GameCard extends StatelessWidget {
   const _GameCard({
     required this.title,
     required this.subtitle,
+    required this.sensor,
     required this.icon,
     required this.accent,
     required this.onTap,
@@ -133,6 +153,7 @@ class _GameCard extends StatelessWidget {
 
   final String title;
   final String subtitle;
+  final String sensor;
   final IconData icon;
   final Color accent;
   final VoidCallback onTap;
@@ -184,6 +205,26 @@ class _GameCard extends StatelessWidget {
                     subtitle,
                     style: Theme.of(context).textTheme.bodyMedium
                         ?.copyWith(fontSize: 13),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      sensor,
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: .5,
+                      ),
+                    ),
                   ),
                 ],
               ),

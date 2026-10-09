@@ -1,72 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:juegos_acelerometro/games/astro_tilt/astro_tilt_level_select_screen.dart';
-import 'package:juegos_acelerometro/games/balance_master/balance_master_level_select_screen.dart';
+import 'package:juegos_acelerometro/games/gyro_aim/gyro_aim_screen.dart';
 import 'package:juegos_acelerometro/games/tilt_maze/tilt_maze_level_select_screen.dart';
 import 'package:juegos_acelerometro/main.dart';
+import 'package:juegos_acelerometro/screens/sensor_lab/sensor_lab_screen.dart';
 
 void main() {
-  testWidgets('Opens both game selectors', (tester) async {
-    final appLogo = find.byWidgetPredicate(
-      (widget) =>
-          widget is Image &&
-          widget.image is AssetImage &&
-          (widget.image as AssetImage).assetName == 'assets/images/Logo.png',
-    );
-
+  testWidgets('Catalog shows the three active games and Gyro Aim opens', (
+    tester,
+  ) async {
     await tester.pumpWidget(const AccelLabApp());
 
-    expect(appLogo, findsOneWidget);
-    expect(find.text('ASTROTILT'), findsOneWidget);
     expect(find.text('TILT MAZE'), findsOneWidget);
-    expect(find.text('BALANCE MASTER'), findsOneWidget);
+    expect(find.text('GYRO AIM'), findsOneWidget);
+    expect(find.text('ASTROTILT'), findsOneWidget);
+    expect(find.text('BALANCE MASTER'), findsNothing);
+    expect(find.text('ACELERÓMETRO'), findsNWidgets(2));
+    expect(find.text('GIROSCOPIO'), findsOneWidget);
 
-    await tester.tap(find.text('BALANCE MASTER'));
+    await tester.tap(find.text('GYRO AIM'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
-    expect(
-      find.descendant(
-        of: find.byType(BalanceMasterLevelSelectScreen),
-        matching: appLogo,
-      ),
-      findsOneWidget,
+    expect(find.byType(GyroAimScreen), findsOneWidget);
+    expect(find.text('Apunta girando tu celular.'), findsOneWidget);
+  });
+
+  testWidgets('Existing selectors and the sensor lab remain available', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: TiltMazeLevelSelectScreen()),
     );
-    expect(find.text('Equilibrio básico'), findsOneWidget);
-    expect(find.text('Doble equilibrio'), findsOneWidget);
-    expect(find.text('Caos controlado'), findsOneWidget);
+    expect(find.byType(TiltMazeLevelSelectScreen), findsOneWidget);
+    expect(find.text('Primer contacto'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Volver a juegos'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-    await tester.pump(const Duration(milliseconds: 350));
-    await tester.tap(find.text('ASTROTILT'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpWidget(
+      const MaterialApp(home: AstroTiltLevelSelectScreen()),
+    );
     expect(find.byType(AstroTiltLevelSelectScreen), findsOneWidget);
     expect(find.text('Patrulla orbital'), findsOneWidget);
-    expect(find.text('Campo de asteroides'), findsOneWidget);
-    expect(find.text('Batalla final'), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byType(AstroTiltLevelSelectScreen),
-        matching: appLogo,
-      ),
-      findsOneWidget,
-    );
-    await tester.tap(find.byTooltip('Volver a juegos'));
+
+    await tester.pumpWidget(const MaterialApp(home: SensorLabScreen()));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-    await tester.pump(const Duration(milliseconds: 350));
-    await tester.tap(find.text('TILT MAZE'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-    expect(
-      find.descendant(
-        of: find.byType(TiltMazeLevelSelectScreen),
-        matching: appLogo,
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Primer contacto'), findsOneWidget);
+    expect(find.byType(SensorLabScreen), findsOneWidget);
+    expect(find.text('GIROSCOPIO'), findsOneWidget);
+    expect(find.text('ACELERÓMETRO'), findsOneWidget);
   });
 }
