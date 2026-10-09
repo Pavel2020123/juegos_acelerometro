@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="520" viewBox="0 0 1600 520" role="img" aria-labelledby="title desc">
+  <title id="title">AccelLab — sensores y videojuegos</title>
+  <desc id="desc">Banner tecnológico con una mira, ejes de movimiento y una órbita sobre un fondo azul oscuro.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07142e"/>
+      <stop offset="0.55" stop-color="#102b59"/>
+      <stop offset="1" stop-color="#241651"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#36d9ff"/>
+      <stop offset="1" stop-color="#7d6bff"/>
+    </linearGradient>
+    <linearGradient id="orb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#65f2ff"/>
+      <stop offset="1" stop-color="#1c7dff"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="rounding">
+      <rect width="1600" height="520" rx="32"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#rounding)">
+    <rect width="1600" height="520" fill="url(#background)"/>
+    <path d="M0 410 C290 330 430 470 690 380 S1170 260 1600 360" fill="none" stroke="#4a4cff" stroke-opacity=".18" stroke-width="2"/>
+    <path d="M0 456 C300 365 450 510 730 414 S1210 290 1600 390" fill="none" stroke="#2bd8ff" stroke-opacity=".16" stroke-width="1"/>
+
+    <g stroke="#8edfff" stroke-opacity=".08" stroke-width="1">
+      <path d="M0 80H1600M0 160H1600M0 240H1600M0 320H1600M0 400H1600M0 480H1600"/>
+      <path d="M120 0V520M280 0V520M440 0V520M600 0V520M760 0V520M920 0V520M1080 0V520M1240 0V520M1400 0V520"/>
+    </g>
+
+    <g transform="translate(1180 260)" filter="url(#glow)">
+      <circle r="154" fill="none" stroke="#49dfff" stroke-opacity=".24" stroke-width="2"/>
+      <circle r="110" fill="none" stroke="#8075ff" stroke-opacity=".3" stroke-width="2" stroke-dasharray="7 13"/>
+      <circle r="68" fill="url(#orb)" fill-opacity=".92"/>
+      <circle cx="-22" cy="-24" r="17" fill="#d9ffff" fill-opacity=".65"/>
+      <path d="M-190 0H190M0-190V190" stroke="#8eeeff" stroke-opacity=".55" stroke-width="2"/>
+      <path d="M-30-30L-82-82M30-30L82-82M-30 30L-82 82M30 30L82 82" stroke="#ffc85a" stroke-width="4" stroke-linecap="round"/>
+      <circle r="184" fill="none" stroke="url(#accent)" stroke-width="4" stroke-dasharray="30 34"/>
+    </g>
+
+    <g transform="translate(94 92)" fill="none" stroke-linecap="round">
+      <path d="M0 318V0M0 318H340" stroke="#8beaff" stroke-opacity=".28" stroke-width="2"/>
+      <path d="M0 318L50 268M0 318L-44 268" stroke="#47ddff" stroke-width="6"/>
+      <path d="M0 318L318 318" stroke="#7b70ff" stroke-width="5" stroke-dasharray="10 13"/>
+      <circle cx="126" cy="190" r="27" stroke="#ffc658" stroke-width="4"/>
+      <circle cx="126" cy="190" r="7" fill="#ffc658" stroke="none"/>
+    </g>
+
+    <text x="112" y="176" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="800" letter-spacing="2">AccelLab</text>
+    <text x="118" y="232" fill="#9feeff" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="600" letter-spacing="1">Sensores reales · movimiento · videojuegos</text>
+    <rect x="118" y="274" width="340" height="5" rx="2.5" fill="url(#accent)"/>
+    <text x="118" y="332" fill="#d8e7ff" fill-opacity=".82" font-family="Arial, Helvetica, sans-serif" font-size="20">Aprende acelerómetro y giroscopio jugando.</text>
+  </g>
+</svg>
